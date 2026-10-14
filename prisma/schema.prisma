@@ -1,0 +1,142 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum UserRole { CUSTOMER INVENTORY_MANAGER ORDER_MANAGER ADMIN }
+enum ProductStatus { DRAFT ACTIVE ARCHIVED BLOCKED }
+enum OrderStatus { PENDING REVIEWING PAID FULFILLING SHIPPED CANCELLED REFUNDED }
+enum VerificationStatus { NOT_STARTED PENDING VERIFIED FAILED EXPIRED }
+
+model User {
+  id String @id @default(cuid())
+  email String @unique
+  passwordHash String
+  name String?
+  role UserRole @default(CUSTOMER)
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders Order[]
+  ageVerification AgeVerification?
+}
+model Category {
+  id String @id @default(cuid())
+  name String
+  slug String @unique
+  parentId String?
+  parent Category? @relation("CategoryTree", fields:[parentId], references:[id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+  createdAt DateTime @default(now())
+}
+model Product {
+  id String @id @default(cuid())
+  sku String @unique
+  slug String @unique
+  name String
+  brand String?
+  description String @db.Text
+  priceCents Int
+  status ProductStatus @default(DRAFT)
+  categoryId String?
+  category Category? @relation(fields:[categoryId], references:[id])
+  imageUrl String?
+  ageRestricted Boolean @default(true)
+  shippingClass String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  inventory Inventory?
+  orderItems OrderItem[]
+  @@index([status, categoryId])
+  @@index([name])
+}
+model Inventory {
+  id String @id @default(cuid())
+  productId String @unique
+  product Product @relation(fields:[productId], references:[id], onDelete:Cascade)
+  quantity Int @default(0)
+  reserved Int @default(0)
+  updatedAt DateTime @updatedAt
+}
+model InventoryMovement {
+  id String @id @default(cuid())
+  productId String
+  actorUserId String?
+  delta Int
+  reason String
+  createdAt DateTime @default(now())
+  @@index([productId, createdAt])
+}
+model Order {
+  id String @id @default(cuid())
+  orderNumber String @unique
+  userId String
+  user User @relation(fields:[userId], references:[id])
+  status OrderStatus @default(PENDING)
+  subtotalCents Int
+  taxCents Int @default(0)
+  shippingCents Int @default(0)
+  totalCents Int
+  shippingAddress Json
+  destinationState String
+  ageVerificationStatus VerificationStatus @default(NOT_STARTED)
+  complianceReviewRequired Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  items OrderItem[]
+  payment Payment?
+}
+model OrderItem {
+  id String @id @default(cuid())
+  orderId String
+  order Order @relation(fields:[orderId], references:[id], onDelete:Cascade)
+  productId String
+  product Product @relation(fields:[productId], references:[id])
+  skuSnapshot String
+  nameSnapshot String
+  unitPriceCents Int
+  quantity Int
+}
+model Payment {
+  id String @id @default(cuid())
+  orderId String @unique
+  order Order @relation(fields:[orderId], references:[id], onDelete:Cascade)
+  provider String
+  providerReference String?
+  status String @default("NOT_CONFIGURED")
+  amountCents Int
+  createdAt DateTime @default(now())
+}
+model AgeVerification {
+  id String @id @default(cuid())
+  userId String @unique
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  provider String
+  providerReference String?
+  status VerificationStatus @default(NOT_STARTED)
+  verifiedAt DateTime?
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+model AuditLog {
+  id String @id @default(cuid())
+  actorUserId String?
+  action String
+  entityType String
+  entityId String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  @@index([createdAt])
+}
+model ImportJob {
+  id String @id @default(cuid())
+  uploadedBy String
+  filename String
+  status String @default("PENDING")
+  totalRows Int @default(0)
+  successRows Int @default(0)
+  errorRows Int @default(0)
+  errors Json?
+  createdAt DateTime @default(now())
+  completedAt DateTime?
+}
