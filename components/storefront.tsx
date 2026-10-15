@@ -21,10 +21,10 @@ const categoryMap: Record<string, string[]> = {
   Glass: ['Glass'], Cigars: ['Cigars'], Accessories: ['Accessories'], Storage: ['Storage'], Tobacco: ['Tobacco']
 };
 const swatches: Record<string, string> = {
-  tobacco: 'linear-gradient(145deg,#d8c8a0,#766247 55%,#2b2925)', papers: 'linear-gradient(145deg,#f4eee3,#c8c0b4 58%,#82786c)',
-  case: 'linear-gradient(145deg,#b8b9b3,#686b64 60%,#282a27)', glass: 'linear-gradient(145deg,#b9d2cf,#5c8c87 55%,#243b39)',
-  kit: 'linear-gradient(145deg,#dfd2b3,#9b875e 55%,#4c4435)', pouch: 'linear-gradient(145deg,#c9b9a0,#88745c 55%,#37322b)',
-  lighter: 'linear-gradient(145deg,#e3c96e,#a47d2d 55%,#4d3d1e)', gift: 'linear-gradient(145deg,#e9e1d0,#b8aa91 55%,#696052)'
+  tobacco: 'linear-gradient(145deg,#e2ff72,#86c83d 55%,#285d45)', papers: 'linear-gradient(145deg,#fff2a6,#ffb45d 58%,#f16d53)',
+  case: 'linear-gradient(145deg,#c4f5ee,#38bdb4 60%,#245a60)', glass: 'linear-gradient(145deg,#d6caff,#9276ef 55%,#483d85)',
+  kit: 'linear-gradient(145deg,#e2ff72,#7bd8b4 55%,#237b72)', pouch: 'linear-gradient(145deg,#ffd4be,#ff8b75 55%,#a83d55)',
+  lighter: 'linear-gradient(145deg,#fff08c,#ffb13c 55%,#e46b32)', gift: 'linear-gradient(145deg,#e7ddff,#b6a0ff 55%,#5c4da6)'
 };
 function ProductArt({ product, large = false }: { product: Product; large?: boolean }) {
   return <div className={`product-art art-${product.image} ${large ? 'large' : ''}`} style={{ background: swatches[product.image] || swatches.gift }} aria-label={`Illustrative placeholder for ${product.name}`} role="img">
